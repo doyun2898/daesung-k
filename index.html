@@ -17,11 +17,11 @@
         #app {
             text-align: center;
         }
-        #auth, #signupForm, #chatContainer {
+        .hidden {
             display: none;
         }
-        #auth.visible, #signupForm.visible, #chatContainer.visible {
-            display: flex;
+        #chatContainer {
+            display: none;
             flex-direction: column;
             align-items: center;
         }
@@ -37,29 +37,33 @@
             padding: 10px;
             margin-bottom: 10px;
         }
+        .popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 300px;
+            padding: 20px;
+            background-color: white;
+            border: 1px solid #ccc;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .popup input {
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 10px;
+        }
+        .popup label {
+            display: block;
+            margin-bottom: 5px;
+        }
     </style>
 </head>
 <body>
     <div id="app">
-        <div id="auth" class="visible">
+        <div id="auth">
             <button id="loginBtn">로그인</button>
             <button id="signupBtn">회원 가입</button>
-        </div>
-
-        <div id="signupForm">
-            <input type="text" id="signupId" placeholder="아이디">
-            <input type="text" id="signupNickname" placeholder="닉네임">
-            <input type="password" id="signupPassword" placeholder="비밀번호">
-            <div id="terms">
-                <label><input type="checkbox" id="term1"> 본 웹페이지에서 채팅으로 인해 발생하는 모든 문제는 본인이 감당합니다.</label>
-                <label><input type="checkbox" id="term2"> 본 웹페이지의 관리자는 어떤 문제가 발생하더라도 책임지지 않습니다.</label>
-                <label><input type="checkbox" id="term3"> 불법적인 행위를 할 시 모든 책임은 당사자에게 있습니다.</label>
-                <label><input type="checkbox" id="term4"> 인터넷 윤리를 지키며 사용하십시오.</label>
-                <label><input type="checkbox" id="term5"> 타인을 직접적으로 언급하지 마십시오. 이것은 모욕죄 및 명예훼손에 해당될 수 있습니다.</label>
-                <label><input type="checkbox" id="term6"> 본인은 이 모든 조건에 동의하며 건전하고 합법적으로 본 웹페이지를 사용할 것을 약속합니다.</label>
-                <label><input type="checkbox" id="term7"> 모든 계정은 6개월 뒤 소멸됩니다.</label>
-            </div>
-            <button id="signupSubmitBtn">회원 가입</button>
         </div>
 
         <div id="chatContainer">
@@ -67,6 +71,32 @@
             <input type="text" id="messageInput" placeholder="메시지를 입력하세요">
             <button id="sendBtn">전송</button>
         </div>
+    </div>
+
+    <div id="loginPopup" class="popup hidden">
+        <h3>로그인</h3>
+        <input type="text" id="loginId" placeholder="아이디">
+        <input type="password" id="loginPassword" placeholder="비밀번호">
+        <button id="loginSubmitBtn">로그인</button>
+        <button id="closeLoginPopup">닫기</button>
+    </div>
+
+    <div id="signupPopup" class="popup hidden">
+        <h3>회원 가입</h3>
+        <input type="text" id="signupId" placeholder="아이디">
+        <input type="text" id="signupNickname" placeholder="닉네임">
+        <input type="password" id="signupPassword" placeholder="비밀번호">
+        <div id="terms">
+            <label><input type="checkbox" id="term1"> 본 웹페이지에서 채팅으로 인해 발생하는 모든 문제는 본인이 감당합니다.</label>
+            <label><input type="checkbox" id="term2"> 본 웹페이지의 관리자는 어떤 문제가 발생하더라도 책임지지 않습니다.</label>
+            <label><input type="checkbox" id="term3"> 불법적인 행위를 할 시 모든 책임은 당사자에게 있습니다.</label>
+            <label><input type="checkbox" id="term4"> 인터넷 윤리를 지키며 사용하십시오.</label>
+            <label><input type="checkbox" id="term5"> 타인을 직접적으로 언급하지 마십시오. 이것은 모욕죄 및 명예훼손에 해당될 수 있습니다.</label>
+            <label><input type="checkbox" id="term6"> 본인은 이 모든 조건에 동의하며 건전하고 합법적으로 본 웹페이지를 사용할 것을 약속합니다.</label>
+            <label><input type="checkbox" id="term7"> 모든 계정은 6개월 뒤 소멸됩니다.</label>
+        </div>
+        <button id="signupSubmitBtn">회원 가입</button>
+        <button id="closeSignupPopup">닫기</button>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/9.1.2/firebase-app.js"></script>
@@ -93,34 +123,57 @@
         const signupBtn = document.getElementById('signupBtn');
         const authDiv = document.getElementById('auth');
         const chatContainer = document.getElementById('chatContainer');
-        const signupForm = document.getElementById('signupForm');
-        const chatBox = document.getElementById('chatBox');
-        const messageInput = document.getElementById('messageInput');
-        const sendBtn = document.getElementById('sendBtn');
+        const loginPopup = document.getElementById('loginPopup');
+        const signupPopup = document.getElementById('signupPopup');
+        const loginSubmitBtn = document.getElementById('loginSubmitBtn');
         const signupSubmitBtn = document.getElementById('signupSubmitBtn');
+        const closeLoginPopup = document.getElementById('closeLoginPopup');
+        const closeSignupPopup = document.getElementById('closeSignupPopup');
+        const loginId = document.getElementById('loginId');
+        const loginPassword = document.getElementById('loginPassword');
         const signupId = document.getElementById('signupId');
         const signupNickname = document.getElementById('signupNickname');
         const signupPassword = document.getElementById('signupPassword');
+        const messageInput = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const chatBox = document.getElementById('chatBox');
 
-        // 로그인 및 회원가입 버튼 이벤트 핸들러
+        // 로그인 팝업 열기
         loginBtn.addEventListener('click', () => {
-            const email = prompt('아이디를 입력하세요');
-            const password = prompt('비밀번호를 입력하세요');
+            loginPopup.classList.remove('hidden');
+        });
+
+        // 회원가입 팝업 열기
+        signupBtn.addEventListener('click', () => {
+            signupPopup.classList.remove('hidden');
+        });
+
+        // 로그인 팝업 닫기
+        closeLoginPopup.addEventListener('click', () => {
+            loginPopup.classList.add('hidden');
+        });
+
+        // 회원가입 팝업 닫기
+        closeSignupPopup.addEventListener('click', () => {
+            signupPopup.classList.add('hidden');
+        });
+
+        // 로그인 처리
+        loginSubmitBtn.addEventListener('click', () => {
+            const email = loginId.value;
+            const password = loginPassword.value;
             signInWithEmailAndPassword(auth, email, password)
                 .then((userCredential) => {
-                    authDiv.classList.remove('visible');
+                    authDiv.classList.add('hidden');
                     chatContainer.classList.add('visible');
+                    loginPopup.classList.add('hidden');
                 })
                 .catch((error) => {
                     alert('로그인 실패: ' + error.message);
                 });
         });
 
-        signupBtn.addEventListener('click', () => {
-            authDiv.classList.remove('visible');
-            signupForm.classList.add('visible');
-        });
-
+        // 회원가입 처리
         signupSubmitBtn.addEventListener('click', () => {
             const email = signupId.value;
             const nickname = signupNickname.value;
@@ -143,8 +196,9 @@
                             nickname: nickname,
                             createdAt: new Date().toISOString()
                         });
-                        signupForm.classList.remove('visible');
+                        signupPopup.classList.add('hidden');
                         chatContainer.classList.add('visible');
+                        authDiv.classList.add('hidden');
                     })
                     .catch((error) => {
                         alert('회원가입 실패: ' + error.message);
@@ -181,3 +235,4 @@
     </script>
 </body>
 </html>
+
