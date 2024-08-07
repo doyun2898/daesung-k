@@ -28,6 +28,33 @@
             overflow-y: scroll;
             margin-bottom: 10px;
         }
+        .back-btn {
+            align-self: flex-start;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+        .menu {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: none;
+            flex-direction: column;
+            align-items: flex-start;
+            border: 1px solid #ccc;
+            background-color: #fff;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .menu-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+        }
+        .menu-item {
+            margin: 5px 0;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -38,6 +65,7 @@
     </div>
 
     <div id="login-container" class="container hidden">
+        <span class="back-btn" id="login-back">뒤로가기</span>
         <h2>로그인</h2>
         <input type="text" id="login-id" placeholder="아이디">
         <input type="password" id="login-password" placeholder="비밀번호">
@@ -45,6 +73,7 @@
     </div>
 
     <div id="signup-container" class="container hidden">
+        <span class="back-btn" id="signup-back">뒤로가기</span>
         <h2>회원 가입</h2>
         <input type="text" id="signup-id" placeholder="아이디">
         <input type="password" id="signup-password" placeholder="비밀번호">
@@ -62,6 +91,12 @@
     </div>
 
     <div id="chat-container" class="container hidden">
+        <div class="menu-btn" id="menu-btn">메뉴</div>
+        <div class="menu" id="menu">
+            <div class="menu-item" id="account-delete">계정 탈퇴</div>
+            <div class="menu-item" id="logout">로그아웃</div>
+            <div class="menu-item" id="about">웹페이지 설명</div>
+        </div>
         <div id="chat-box"></div>
         <input type="text" id="chat-input" placeholder="메시지를 입력하세요">
         <button id="send-message">전송</button>
@@ -70,7 +105,7 @@
     <script type="module">
         // Firebase 초기화
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.1.3/firebase-app.js";
-        import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/9.1.3/firebase-auth.js";
+        import { getAuth, signOut, deleteUser } from "https://www.gstatic.com/firebasejs/9.1.3/firebase-auth.js";
         import { getDatabase, ref, set, push, onValue, get, child } from "https://www.gstatic.com/firebasejs/9.1.3/firebase-database.js";
 
         const firebaseConfig = {
@@ -100,6 +135,29 @@
         const chatBox = document.getElementById('chat-box');
         const chatInput = document.getElementById('chat-input');
         const sendMessage = document.getElementById('send-message');
+        const loginBack = document.getElementById('login-back');
+        const signupBack = document.getElementById('signup-back');
+        const menuBtn = document.getElementById('menu-btn');
+        const menu = document.getElementById('menu');
+        const accountDelete = document.getElementById('account-delete');
+        const logout = document.getElementById('logout');
+        const about = document.getElementById('about');
+
+        // 뒤로가기 버튼 기능
+        loginBack.addEventListener('click', () => {
+            loginContainer.classList.add('hidden');
+            mainContainer.classList.remove('hidden');
+        });
+
+        signupBack.addEventListener('click', () => {
+            signupContainer.classList.add('hidden');
+            mainContainer.classList.remove('hidden');
+        });
+
+        // 메뉴 버튼 기능
+        menuBtn.addEventListener('click', () => {
+            menu.style.display = menu.style.display === 'none' ? 'flex' : 'none';
+        });
 
         // 로그인 화면 보여주기
         loginBtn.addEventListener('click', () => {
@@ -132,21 +190,13 @@
             }
 
             const usersRef = ref(database, 'users/' + id);
-            get(usersRef).then((snapshot) => {
-                if (snapshot.exists()) {
-                    alert('이미 존재하는 아이디입니다.');
-                } else {
-                    set(usersRef, {
-                        password: password,
-                        nickname: nickname
-                    }).then(() => {
-                        alert('회원가입 성공');
-                        signupContainer.classList.add('hidden');
-                        loginContainer.classList.remove('hidden');
-                    }).catch((error) => {
-                        alert('회원가입 실패: ' + error.message);
-                    });
-                }
+            set(usersRef, {
+                password: password,
+                nickname: nickname
+            }).then(() => {
+                alert('회원가입 성공');
+                signupContainer.classList.add('hidden');
+                loginContainer.classList.remove('hidden');
             }).catch((error) => {
                 alert('회원가입 실패: ' + error.message);
             });
@@ -205,6 +255,38 @@
                 chatBox.scrollTop = chatBox.scrollHeight;
             });
         }
+
+        // 계정 탈퇴 처리
+        accountDelete.addEventListener('click', () => {
+            const user = auth.currentUser;
+            if (user) {
+                deleteUser(user).then(() => {
+                    alert('계정이 삭제되었습니다.');
+                    chatContainer.classList.add('hidden');
+                    mainContainer.classList.remove('hidden');
+                }).catch((error) => {
+                    alert('계정 삭제 실패: ' + error.message);
+                });
+            } else {
+                alert('로그인된 사용자가 없습니다.');
+            }
+        });
+
+        // 로그아웃 처리
+        logout.addEventListener('click', () => {
+            signOut(auth).then(() => {
+                alert('로그아웃 되었습니다.');
+                chatContainer.classList.add('hidden');
+                mainContainer.classList.remove('hidden');
+            }).catch((error) => {
+                alert('로그아웃 실패: ' + error.message);
+            });
+        });
+
+        // 웹페이지 설명
+        about.addEventListener('click', () => {
+            alert('본 웹페이지는 강남대성기숙학원이 온라인에서 채팅하기 위해서 만들어졌습니다.');
+        });
     </script>
 </body>
 </html>
